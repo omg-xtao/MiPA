@@ -42,7 +42,6 @@ from typing import (
 )
 
 from mipac.models import Note
-from mipac.models.chat import ChatMessage
 from mipac.models.emoji import CustomEmoji
 from mipac.models.note import NoteDeleted
 from mipac.models.notification import (
@@ -54,9 +53,8 @@ from mipac.models.notification import (
     NotificationReaction,
 )
 from mipac.models.reaction import PartialReaction
-from mipac.models.user import UserDetailed
+from mipac.models.user import UserDetailedNotMe, MeDetailed
 from mipac.types import INote
-from mipac.types.chat import IChatMessage
 from mipac.types.emoji import ICustomEmoji
 from mipac.types.note import (
     INoteUpdated,
@@ -149,7 +147,7 @@ class ConnectionState:
         """
         When you follow someone, this event will be called
         """
-        user: UserDetailed = UserDetailed(
+        user: UserDetailedNotMe = UserDetailedNotMe(
             message,
             client=self.api,
         )
@@ -159,7 +157,7 @@ class ConnectionState:
         """
         When you unfollow someone, this event will be called
         """
-        user: UserDetailed = UserDetailed(
+        user: UserDetailedNotMe = UserDetailedNotMe(
             message,
             client=self.api,
         )
@@ -197,7 +195,7 @@ class ConnectionState:
         self.__dispatch("reacted", PartialReaction(reaction, client=self.api))
 
     async def parse_me_updated(self, user: IUserDetailed, **kwargs):
-        self.__dispatch("me_updated", UserDetailed(user, client=self.api))
+        self.__dispatch("me_updated", MeDetailed(user, client=self.api))
 
     async def parse_announcement_created(
         self, message: Dict[str, Any], **kwargs
@@ -253,28 +251,6 @@ class ConnectionState:
         self, message: Dict[str, Any], **kwargs
     ) -> None:
         pass
-
-    async def parse_messaging_message(
-        self, message: IChatMessage, **kwargs
-    ) -> None:
-        """
-        チャットが来た際のデータを処理する関数
-        """
-        self.__dispatch(
-            "chat",
-            ChatMessage(message, client=self.api),
-        )
-
-    async def parse_unread_messaging_message(
-        self, message: IChatMessage, **kwargs
-    ) -> None:
-        """
-        チャットが既読になっていない場合のデータを処理する関数
-        """
-        self.__dispatch(
-            "chat_unread_message",
-            ChatMessage(message, client=self.api),
-        )
 
     async def parse_notification(
         self, notification_data: Dict[str, Any], **kwargs
